@@ -4,15 +4,16 @@
 #define GetSophia(object, sophia) {                         \
         Data_Get_Struct((object), Sophia, (sophia));        \
         if ((sophia) == NULL) {                             \
-            rb_raise(rb_eSophiaError, "closed object");   \
+            rb_raise(rb_eSophiaError, "closed object");     \
         }                                                   \
         if ((sophia)->env == NULL) {                        \
-            rb_raise(rb_eSophiaError, "closed object");   \
+            rb_raise(rb_eSophiaError, "closed object");     \
         }                                                   \
         if ((sophia)->db == NULL) {                         \
-            rb_raise(rb_eSophiaError, "closed object");   \
+            rb_raise(rb_eSophiaError, "closed object");     \
         }                                                   \
 }
+#define RaiseSophiaError(env) rb_raise(rb_eSophiaError, "%s", sp_error((env)))
 
 static VALUE rb_cSophia;
 static VALUE rb_eSophiaError;
@@ -72,13 +73,13 @@ sophia_initialize(int argc, VALUE *argv, VALUE self)
     }
 
     if (sp_ctl(sophia->env, SPDIR, SPO_CREAT|SPO_RDWR, RSTRING_PTR(file))) {
-        rb_raise(rb_eSophiaError, "%s", sp_error(sophia->env));
+        RaiseSophiaError(sophia->env);
     }
 
     sophia->db = sp_open(sophia->env);
 
     if (sophia->db == NULL) {
-        rb_raise(rb_eSophiaError, "%s", sp_error(sophia->env));
+        RaiseSophiaError(sophia->env);
     }
 
     return self;
@@ -97,14 +98,14 @@ sophia_close(VALUE self)
 
     if (sophia->db) {
         if (sp_destroy(sophia->db)) {
-            rb_raise(rb_eSophiaError, "%s", sp_error(sophia->env));
+            RaiseSophiaError(sophia->env);
         }
         sophia->db = NULL;
     }
 
     if (sophia->env) {
         if (sp_destroy(sophia->env)) {
-            rb_raise(rb_eSophiaError, "%s", sp_error(sophia->env));
+            RaiseSophiaError(sophia->env);
         }
         sophia->env = NULL;
     }
@@ -172,7 +173,7 @@ sophia_set(VALUE self, VALUE key, VALUE value)
     if (sp_set(sophia->db,
                RSTRING_PTR(key), RSTRING_LEN(key),
                RSTRING_PTR(value), RSTRING_LEN(value))) {
-        rb_raise(rb_eSophiaError, "%s", sp_error(sophia->env));
+        RaiseSophiaError(sophia->env);
     }
 
     return value;
@@ -203,7 +204,7 @@ sophia_get(VALUE self, VALUE key, VALUE ifnone)
             return ifnone;
         }
     } else if (result == -1) {
-        rb_raise(rb_eSophiaError, "%s", sp_error(sophia->env));
+        RaiseSophiaError(sophia->env);
     }
 
     rb_raise(rb_eSophiaError, "error");
@@ -243,7 +244,7 @@ sophia_delete(VALUE self, VALUE key)
     if (result == 0) {
         return val;
     } else if (result == -1) {
-        rb_raise(rb_eSophiaError, "%s", sp_error(sophia->env));
+        RaiseSophiaError(sophia->env);
     }
 
     rb_raise(rb_eSophiaError, "error");
@@ -254,14 +255,14 @@ static VALUE
 sophia_length(VALUE self)
 {
     Sophia *sophia;
-    int length = 0;
     void   *cursor;
+    int length = 0;
 
     GetSophia(self, sophia);
 
     cursor = sp_cursor(sophia->db, SPGT, NULL, 0);
     if (cursor == NULL) {
-        rb_raise(rb_eSophiaError, "%s", sp_error(sophia->env));
+        RaiseSophiaError(sophia->env);
     }
 	while (sp_fetch(cursor)) {
         length += 1;
@@ -275,14 +276,14 @@ static VALUE
 sophia_empty_p(VALUE self)
 {
     Sophia *sophia;
-    int     result;
     void   *cursor;
+    int     result;
 
     GetSophia(self, sophia);
 
     cursor = sp_cursor(sophia->db, SPGT, NULL, 0);
     if (cursor == NULL) {
-        rb_raise(rb_eSophiaError, "%s", sp_error(sophia->env));
+        RaiseSophiaError(sophia->env);
     }
     result = sp_fetch(cursor);
     sp_destroy(cursor);
@@ -302,7 +303,7 @@ sophia_each_pair(VALUE self)
 
     cursor = sp_cursor(sophia->db, SPGT, NULL, 0);
     if (cursor == NULL) {
-        rb_raise(rb_eSophiaError, "%s", sp_error(sophia->env));
+        RaiseSophiaError(sophia->env);
     }
     while (sp_fetch(cursor)) {
         rb_yield(rb_assoc_new(rb_str_new(sp_key(cursor), sp_keysize(cursor)),
@@ -325,7 +326,7 @@ sophia_each_key(VALUE self)
 
     cursor = sp_cursor(sophia->db, SPGT, NULL, 0);
     if (cursor == NULL) {
-        rb_raise(rb_eSophiaError, "%s", sp_error(sophia->env));
+        RaiseSophiaError(sophia->env);
     }
     while (sp_fetch(cursor)) {
         rb_yield(rb_str_new(sp_key(cursor), sp_keysize(cursor)));
@@ -347,7 +348,7 @@ sophia_each_value(VALUE self)
 
     cursor = sp_cursor(sophia->db, SPGT, NULL, 0);
     if (cursor == NULL) {
-        rb_raise(rb_eSophiaError, "%s", sp_error(sophia->env));
+        RaiseSophiaError(sophia->env);
     }
     while (sp_fetch(cursor)) {
         rb_yield(rb_str_new(sp_value(cursor), sp_valuesize(cursor)));
@@ -370,7 +371,7 @@ sophia_key(VALUE self, VALUE value)
 
     cursor = sp_cursor(sophia->db, SPGT, NULL, 0);
     if (cursor == NULL) {
-        rb_raise(rb_eSophiaError, "%s", sp_error(sophia->env));
+        RaiseSophiaError(sophia->env);
     }
     while (sp_fetch(cursor)) {
         if (sp_valuesize(cursor) == RSTRING_LEN(value)) {
@@ -409,7 +410,7 @@ sophia_keys(VALUE self)
 
     cursor = sp_cursor(sophia->db, SPGT, NULL, 0);
     if (cursor == NULL) {
-        rb_raise(rb_eSophiaError, "%s", sp_error(sophia->env));
+        RaiseSophiaError(sophia->env);
     }
     while (sp_fetch(cursor)) {
         rb_ary_push(retvals, rb_str_new(sp_key(cursor), sp_keysize(cursor)));
@@ -430,7 +431,7 @@ sophia_values(VALUE self)
 
     cursor = sp_cursor(sophia->db, SPGT, NULL, 0);
     if (cursor == NULL) {
-        rb_raise(rb_eSophiaError, "%s", sp_error(sophia->env));
+        RaiseSophiaError(sophia->env);
     }
     while (sp_fetch(cursor)) {
         rb_ary_push(retvals, rb_str_new(sp_value(cursor), sp_valuesize(cursor)));
@@ -488,8 +489,8 @@ static VALUE
 sophia_has_key_p(VALUE self, VALUE key)
 {
     Sophia *sophia;
-    int     result;
     void   *cursor;
+    int     result;
 
     GetSophia(self, sophia);
 
@@ -497,7 +498,7 @@ sophia_has_key_p(VALUE self, VALUE key)
 
     cursor = sp_cursor(sophia->db, SPGTE, RSTRING_PTR(key), RSTRING_LEN(key));
     if (cursor == NULL) {
-        rb_raise(rb_eSophiaError, "%s", sp_error(sophia->env));
+        RaiseSophiaError(sophia->env);
     }
     result = sp_fetch(cursor);
     sp_destroy(cursor);
@@ -518,7 +519,7 @@ sophia_has_value_p(VALUE self, VALUE value)
 
     cursor = sp_cursor(sophia->db, SPGT, NULL, 0);
     if (cursor == NULL) {
-        rb_raise(rb_eSophiaError, "%s", sp_error(sophia->env));
+        RaiseSophiaError(sophia->env);
     }
     while (sp_fetch(cursor)) {
         if (sp_valuesize(cursor) == RSTRING_LEN(value)) {
