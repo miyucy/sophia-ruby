@@ -131,4 +131,17 @@ describe Sophia do
 
     vals.must_equal %w[val1 val2]
   end
+
+  it 'find' do
+    sophia = Sophia.new @tmpdir
+    sophia['key1'] = 'val1'
+    sophia['key2'] = 'val2'
+    sophia['key3'] = 'val3'
+    sophia['key4'] = 'val4'
+    expect = %w[key2 val2]
+
+    sophia.find { |key, val|
+      [key, val] == expect
+    }.must_equal expect
+  end
 end

@@ -296,6 +296,8 @@ sophia_each_pair(VALUE self)
     Sophia *sophia;
     void   *cursor;
 
+    RETURN_ENUMERATOR(self, 0, 0);
+
     GetSophia(self, sophia);
 
     cursor = sp_cursor(sophia->db, SPGT, NULL, 0);
@@ -317,6 +319,8 @@ sophia_each_key(VALUE self)
     Sophia *sophia;
     void   *cursor;
 
+    RETURN_ENUMERATOR(self, 0, 0);
+
     GetSophia(self, sophia);
 
     cursor = sp_cursor(sophia->db, SPGT, NULL, 0);
@@ -337,6 +341,8 @@ sophia_each_value(VALUE self)
     Sophia *sophia;
     void   *cursor;
 
+    RETURN_ENUMERATOR(self, 0, 0);
+
     GetSophia(self, sophia);
 
     cursor = sp_cursor(sophia->db, SPGT, NULL, 0);
@@ -355,6 +361,7 @@ void
 Init_sophia()
 {
     rb_cSophia = rb_define_class("Sophia", rb_cObject);
+    rb_include_module(rb_cSophia, rb_mEnumerable); /* include Enumerable */
     rb_define_alloc_func(rb_cSophia, sophia_alloc);
 
     rb_eSophiaError = rb_define_class("SophiaError", rb_eStandardError);
