@@ -290,6 +290,67 @@ sophia_empty_p(VALUE self)
     return result == 0 ?  Qtrue : Qfalse;
 }
 
+static VALUE
+sophia_each_pair(VALUE self)
+{
+    Sophia *sophia;
+    void   *cursor;
+
+    GetSophia(self, sophia);
+
+    cursor = sp_cursor(sophia->db, SPGT, NULL, 0);
+    if (cursor == NULL) {
+        rb_raise(rb_eSophiaError, sp_error(sophia->env));
+    }
+    while (sp_fetch(cursor)) {
+        rb_yield(rb_assoc_new(rb_str_new(sp_key(cursor), sp_keysize(cursor)),
+                              rb_str_new(sp_value(cursor), sp_valuesize(cursor))));
+    }
+    sp_destroy(cursor);
+
+    return self;
+}
+
+static VALUE
+sophia_each_key(VALUE self)
+{
+    Sophia *sophia;
+    void   *cursor;
+
+    GetSophia(self, sophia);
+
+    cursor = sp_cursor(sophia->db, SPGT, NULL, 0);
+    if (cursor == NULL) {
+        rb_raise(rb_eSophiaError, sp_error(sophia->env));
+    }
+    while (sp_fetch(cursor)) {
+        rb_yield(rb_str_new(sp_key(cursor), sp_keysize(cursor)));
+    }
+    sp_destroy(cursor);
+
+    return self;
+}
+
+static VALUE
+sophia_each_value(VALUE self)
+{
+    Sophia *sophia;
+    void   *cursor;
+
+    GetSophia(self, sophia);
+
+    cursor = sp_cursor(sophia->db, SPGT, NULL, 0);
+    if (cursor == NULL) {
+        rb_raise(rb_eSophiaError, sp_error(sophia->env));
+    }
+    while (sp_fetch(cursor)) {
+        rb_yield(rb_str_new(sp_value(cursor), sp_valuesize(cursor)));
+    }
+    sp_destroy(cursor);
+
+    return self;
+}
+
 void
 Init_sophia()
 {
@@ -301,17 +362,21 @@ Init_sophia()
     rb_define_singleton_method(rb_cSophia, "open", sophia_s_open, -1);
 
     rb_define_private_method(rb_cSophia, "initialize", sophia_initialize, -1);
-    rb_define_method(rb_cSophia, "close",   sophia_close, 0);
-    rb_define_method(rb_cSophia, "closed?", sophia_closed_p, 0);
-    rb_define_method(rb_cSophia, "set",     sophia_set, 2);
-    rb_define_method(rb_cSophia, "[]=",     sophia_set, 2);
-    rb_define_method(rb_cSophia, "get",     sophia_aref, 1);
-    rb_define_method(rb_cSophia, "[]",      sophia_aref, 1);
-    rb_define_method(rb_cSophia, "fetch",   sophia_fetch, -1);
-    rb_define_method(rb_cSophia, "delete",  sophia_delete, 1);
-    rb_define_method(rb_cSophia, "length",  sophia_length, 0);
-    rb_define_alias(rb_cSophia,  "size",    "length");
-    rb_define_method(rb_cSophia, "empty?",  sophia_empty_p, 0);
+    rb_define_method(rb_cSophia, "close",      sophia_close, 0);
+    rb_define_method(rb_cSophia, "closed?",    sophia_closed_p, 0);
+    rb_define_method(rb_cSophia, "set",        sophia_set, 2);
+    rb_define_method(rb_cSophia, "[]=",        sophia_set, 2);
+    rb_define_method(rb_cSophia, "get",        sophia_aref, 1);
+    rb_define_method(rb_cSophia, "[]",         sophia_aref, 1);
+    rb_define_method(rb_cSophia, "fetch",      sophia_fetch, -1);
+    rb_define_method(rb_cSophia, "delete",     sophia_delete, 1);
+    rb_define_method(rb_cSophia, "length",     sophia_length, 0);
+    rb_define_alias(rb_cSophia,  "size",       "length");
+    rb_define_method(rb_cSophia, "empty?",     sophia_empty_p, 0);
+    rb_define_method(rb_cSophia, "each_pair",  sophia_each_pair, 0);
+    rb_define_alias(rb_cSophia,  "each",       "each_pair");
+    rb_define_method(rb_cSophia, "each_key",   sophia_each_key, 0);
+    rb_define_method(rb_cSophia, "each_value", sophia_each_value, 0);
 
     rb_require("sophia/version");
 }

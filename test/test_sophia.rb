@@ -100,4 +100,35 @@ describe Sophia do
 
     lambda { sophia['key'] = 'val' }.must_raise SophiaError
   end
+
+  it 'each' do
+    sophia = Sophia.new @tmpdir
+    sophia['key1'] = 'val1'
+    sophia['key2'] = 'val2'
+    keys, vals = [], []
+    sophia.each { |k, v| keys << k; vals << v }
+
+    keys.must_equal %w[key1 key2]
+    vals.must_equal %w[val1 val2]
+  end
+
+  it 'each_key' do
+    sophia = Sophia.new @tmpdir
+    sophia['key1'] = 'val1'
+    sophia['key2'] = 'val2'
+    keys = []
+    sophia.each_key { |k| keys << k }
+
+    keys.must_equal %w[key1 key2]
+  end
+
+  it 'each_value' do
+    sophia = Sophia.new @tmpdir
+    sophia['key1'] = 'val1'
+    sophia['key2'] = 'val2'
+    vals = []
+    sophia.each_value { |v| vals << v }
+
+    vals.must_equal %w[val1 val2]
+  end
 end
