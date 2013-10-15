@@ -292,6 +292,24 @@ sophia_empty_p(VALUE self)
 }
 
 static VALUE
+sophia_each_pair_block(VALUE value)
+{
+    void *cursor = (void*)value;
+    while (sp_fetch(cursor)) {
+        rb_yield(rb_assoc_new(rb_str_new(sp_key(cursor), sp_keysize(cursor)),
+                              rb_str_new(sp_value(cursor), sp_valuesize(cursor))));
+    }
+    return Qnil;
+}
+
+static VALUE
+sophia_cursor_ensure(VALUE value)
+{
+    sp_destroy((void*)value);
+    return Qnil;
+}
+
+static VALUE
 sophia_each_pair(VALUE self)
 {
     Sophia *sophia;
@@ -305,13 +323,19 @@ sophia_each_pair(VALUE self)
     if (cursor == NULL) {
         RaiseSophiaError(sophia->env);
     }
-    while (sp_fetch(cursor)) {
-        rb_yield(rb_assoc_new(rb_str_new(sp_key(cursor), sp_keysize(cursor)),
-                              rb_str_new(sp_value(cursor), sp_valuesize(cursor))));
-    }
-    sp_destroy(cursor);
+    rb_ensure(sophia_each_pair_block, (VALUE)cursor, sophia_cursor_ensure, (VALUE)cursor);
 
     return self;
+}
+
+static VALUE
+sophia_each_key_block(VALUE value)
+{
+    void *cursor = (void*)value;
+    while (sp_fetch(cursor)) {
+        rb_yield(rb_str_new(sp_key(cursor), sp_keysize(cursor)));
+    }
+    return Qnil;
 }
 
 static VALUE
@@ -328,12 +352,19 @@ sophia_each_key(VALUE self)
     if (cursor == NULL) {
         RaiseSophiaError(sophia->env);
     }
-    while (sp_fetch(cursor)) {
-        rb_yield(rb_str_new(sp_key(cursor), sp_keysize(cursor)));
-    }
-    sp_destroy(cursor);
+    rb_ensure(sophia_each_key_block, (VALUE)cursor, sophia_cursor_ensure, (VALUE)cursor);
 
     return self;
+}
+
+static VALUE
+sophia_each_value_block(VALUE value)
+{
+    void *cursor = (void*)value;
+    while (sp_fetch(cursor)) {
+        rb_yield(rb_str_new(sp_value(cursor), sp_valuesize(cursor)));
+    }
+    return Qnil;
 }
 
 static VALUE
@@ -350,10 +381,7 @@ sophia_each_value(VALUE self)
     if (cursor == NULL) {
         RaiseSophiaError(sophia->env);
     }
-    while (sp_fetch(cursor)) {
-        rb_yield(rb_str_new(sp_value(cursor), sp_valuesize(cursor)));
-    }
-    sp_destroy(cursor);
+    rb_ensure(sophia_each_value_block, (VALUE)cursor, sophia_cursor_ensure, (VALUE)cursor);
 
     return self;
 }
