@@ -93,4 +93,11 @@ describe Sophia do
 
     sophia.wont_be :empty?
   end
+
+  it 'access to closed sophia db' do
+    sophia = Sophia.new @tmpdir
+    sophia.close
+
+    lambda { sophia['key'] = 'val' }.must_raise SophiaError
+  end
 end

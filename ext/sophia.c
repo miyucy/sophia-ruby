@@ -4,17 +4,18 @@
 #define GetSophia(object, sophia) {                         \
         Data_Get_Struct((object), Sophia, (sophia));        \
         if ((sophia) == NULL) {                             \
-            rb_raise(rb_eStandardError, "closed object");   \
+            rb_raise(rb_eSophiaError, "closed object");   \
         }                                                   \
         if ((sophia)->env == NULL) {                        \
-            rb_raise(rb_eStandardError, "closed object");   \
+            rb_raise(rb_eSophiaError, "closed object");   \
         }                                                   \
         if ((sophia)->db == NULL) {                         \
-            rb_raise(rb_eStandardError, "closed object");   \
+            rb_raise(rb_eSophiaError, "closed object");   \
         }                                                   \
 }
 
 static VALUE rb_cSophia;
+static VALUE rb_eSophiaError;
 
 typedef struct {
     void* env;
@@ -67,17 +68,17 @@ sophia_initialize(int argc, VALUE *argv, VALUE self)
     sophia->env = sp_env();
 
     if (sophia->env == NULL) {
-        rb_raise(rb_eStandardError, "sp_env(3)");
+        rb_raise(rb_eSophiaError, "sp_env(3)");
     }
 
     if (sp_ctl(sophia->env, SPDIR, SPO_CREAT|SPO_RDWR, RSTRING_PTR(file))) {
-        rb_raise(rb_eStandardError, sp_error(sophia->env));
+        rb_raise(rb_eSophiaError, sp_error(sophia->env));
     }
 
     sophia->db = sp_open(sophia->env);
 
     if (sophia->db == NULL) {
-        rb_raise(rb_eStandardError, sp_error(sophia->env));
+        rb_raise(rb_eSophiaError, sp_error(sophia->env));
     }
 
     return self;
@@ -96,14 +97,14 @@ sophia_close(VALUE self)
 
     if (sophia->db) {
         if (sp_destroy(sophia->db)) {
-            rb_raise(rb_eStandardError, sp_error(sophia->env));
+            rb_raise(rb_eSophiaError, sp_error(sophia->env));
         }
         sophia->db = NULL;
     }
 
     if (sophia->env) {
         if (sp_destroy(sophia->env)) {
-            rb_raise(rb_eStandardError, sp_error(sophia->env));
+            rb_raise(rb_eSophiaError, sp_error(sophia->env));
         }
         sophia->env = NULL;
     }
@@ -171,7 +172,7 @@ sophia_set(VALUE self, VALUE key, VALUE value)
     if (sp_set(sophia->db,
                RSTRING_PTR(key), RSTRING_LEN(key),
                RSTRING_PTR(value), RSTRING_LEN(value))) {
-        rb_raise(rb_eStandardError, sp_error(sophia->env));
+        rb_raise(rb_eSophiaError, sp_error(sophia->env));
     }
 
     return value;
@@ -202,10 +203,10 @@ sophia_get(VALUE self, VALUE key, VALUE ifnone)
             return ifnone;
         }
     } else if (result == -1) {
-        rb_raise(rb_eStandardError, sp_error(sophia->env));
+        rb_raise(rb_eSophiaError, sp_error(sophia->env));
     }
 
-    rb_raise(rb_eStandardError, "error");
+    rb_raise(rb_eSophiaError, "error");
     return Qnil;
 }
 
@@ -242,10 +243,10 @@ sophia_delete(VALUE self, VALUE key)
     if (result == 0) {
         return val;
     } else if (result == -1) {
-        rb_raise(rb_eStandardError, sp_error(sophia->env));
+        rb_raise(rb_eSophiaError, sp_error(sophia->env));
     }
 
-    rb_raise(rb_eStandardError, "error");
+    rb_raise(rb_eSophiaError, "error");
     return Qnil;
 }
 
@@ -260,7 +261,7 @@ sophia_length(VALUE self)
 
     cursor = sp_cursor(sophia->db, SPGT, NULL, 0);
     if (cursor == NULL) {
-        rb_raise(rb_eStandardError, sp_error(sophia->env));
+        rb_raise(rb_eSophiaError, sp_error(sophia->env));
     }
 	while (sp_fetch(cursor)) {
         length += 1;
@@ -281,7 +282,7 @@ sophia_empty_p(VALUE self)
 
     cursor = sp_cursor(sophia->db, SPGT, NULL, 0);
     if (cursor == NULL) {
-        rb_raise(rb_eStandardError, sp_error(sophia->env));
+        rb_raise(rb_eSophiaError, sp_error(sophia->env));
     }
     result = sp_fetch(cursor);
     sp_destroy(cursor);
@@ -294,6 +295,8 @@ Init_sophia()
 {
     rb_cSophia = rb_define_class("Sophia", rb_cObject);
     rb_define_alloc_func(rb_cSophia, sophia_alloc);
+
+    rb_eSophiaError = rb_define_class("SophiaError", rb_eStandardError);
 
     rb_define_singleton_method(rb_cSophia, "open", sophia_s_open, -1);
 
