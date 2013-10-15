@@ -54,4 +54,17 @@ describe Sophia do
       '456'
     }.must_equal '456'
   end
+
+  it 'delete' do
+    sophia = Sophia.new @tmpdir
+    sophia['key'] = 'val'
+
+    sophia.delete('key').must_equal 'val'
+  end
+
+  it 'delete not exists key' do
+    sophia = Sophia.new @tmpdir
+
+    sophia.delete('key').must_be_nil
+  end
 end

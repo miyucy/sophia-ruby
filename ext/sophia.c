@@ -224,12 +224,36 @@ sophia_fetch(int argc, VALUE *argv, VALUE self)
     return sophia_get(self, key, ifnone);
 }
 
+static VALUE
+sophia_delete(VALUE self, VALUE key)
+{
+    Sophia *sophia;
+    int     result;
+    VALUE      val;
+
+    GetSophia(self, sophia);
+
+    ExportStringValue(key);
+
+    val = sophia_aref(self, key);
+
+    result = sp_delete(sophia->db,
+                       RSTRING_PTR(key), RSTRING_LEN(key));
+    if (result == 0) {
+        return val;
+    } else if (result == -1) {
+        rb_raise(rb_eStandardError, sp_error(sophia->env));
+    }
+
+    rb_raise(rb_eStandardError, "error");
+    return Qnil;
+}
+
 void
 Init_sophia()
 {
     rb_cSophia = rb_define_class("Sophia", rb_cObject);
     rb_define_alloc_func(rb_cSophia, sophia_alloc);
-    rb_include_module(rb_cSophia, rb_mEnumerable); /* include Enumerable */
 
     rb_define_singleton_method(rb_cSophia, "open", sophia_s_open, -1);
 
@@ -241,5 +265,6 @@ Init_sophia()
     rb_define_method(rb_cSophia, "get",     sophia_aref, 1);
     rb_define_method(rb_cSophia, "[]",      sophia_aref, 1);
     rb_define_method(rb_cSophia, "fetch",   sophia_fetch, -1);
+    rb_define_method(rb_cSophia, "delete",  sophia_delete, 1);
     rb_require("sophia/version");
 }
