@@ -144,4 +144,39 @@ describe Sophia do
       [key, val] == expect
     }.must_equal expect
   end
+
+  it 'key' do
+    sophia = Sophia.new @tmpdir
+    sophia['key1'] = 'val1'
+
+    sophia.key('val1').must_equal 'key1'
+  end
+
+  it 'key with not exists key' do
+    sophia = Sophia.new @tmpdir
+
+    sophia.key('val1').must_be_nil
+  end
+
+  it 'values_at' do
+    sophia = Sophia.new @tmpdir
+    sophia['key1'] = 'val1'
+    sophia['key2'] = 'val2'
+    sophia['key3'] = 'val3'
+
+    sophia.values_at('key1', 'key3').must_equal %w[val1 val3]
+  end
+
+  it 'values_at with not exists key' do
+    sophia = Sophia.new @tmpdir
+    sophia['key1'] = 'val1'
+
+    sophia.values_at('key4', 'key1').must_equal [nil, 'val1']
+  end
+
+  it 'values_at with no args' do
+    sophia = Sophia.new @tmpdir
+
+    sophia.values_at.must_be :empty?
+  end
 end
