@@ -84,14 +84,14 @@ describe Sophia do
   it 'empty?' do
     sophia = Sophia.new @tmpdir
 
-    sophia.must_be :empty?
+    sophia.must_be_empty
   end
 
   it 'empty? with key' do
     sophia = Sophia.new @tmpdir
     sophia['key'] = 'val'
 
-    sophia.wont_be :empty?
+    sophia.wont_be_empty
   end
 
   it 'access to closed sophia db' do
@@ -177,7 +177,7 @@ describe Sophia do
   it 'values_at with no args' do
     sophia = Sophia.new @tmpdir
 
-    sophia.values_at.must_be :empty?
+    sophia.values_at.must_be_empty
   end
 
   it 'keys' do
@@ -190,7 +190,7 @@ describe Sophia do
   it 'keys with empty db' do
     sophia = Sophia.new @tmpdir
 
-    sophia.keys.must_be :empty?
+    sophia.keys.must_be_empty
   end
 
   it 'values' do
@@ -203,7 +203,7 @@ describe Sophia do
   it 'values with empty db' do
     sophia = Sophia.new @tmpdir
 
-    sophia.values.must_be :empty?
+    sophia.values.must_be_empty
   end
 
   it 'clear' do
@@ -211,7 +211,7 @@ describe Sophia do
     sophia['key'] = 'val'
     sophia.clear
 
-    sophia.must_be :empty?
+    sophia.must_be_empty
   end
 
   it 'clear return nil' do
@@ -231,7 +231,7 @@ describe Sophia do
     sophia = Sophia.new @tmpdir
     sophia.update({})
 
-    sophia.must_be :empty?
+    sophia.must_be_empty
   end
 
   it 'replace' do
