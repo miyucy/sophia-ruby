@@ -475,6 +475,14 @@ sophia_update(VALUE self, VALUE value)
     return self;
 }
 
+static VALUE
+sophia_replace(VALUE self, VALUE value)
+{
+    sophia_clear(self);
+    sophia_update(self, value);
+    return self;
+}
+
 void
 Init_sophia()
 {
@@ -509,6 +517,7 @@ Init_sophia()
     rb_define_method(rb_cSophia, "values",     sophia_values, 0);
     rb_define_method(rb_cSophia, "clear",      sophia_clear, 0);
     rb_define_method(rb_cSophia, "update",     sophia_update, 1);
+    rb_define_method(rb_cSophia, "replace",    sophia_replace, 1);
 
     rb_require("sophia/version");
 }

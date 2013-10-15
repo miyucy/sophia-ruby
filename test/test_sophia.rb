@@ -233,4 +233,13 @@ describe Sophia do
 
     sophia.must_be :empty?
   end
+
+  it 'replace' do
+    sophia = Sophia.new @tmpdir
+    sophia.update('key1' => 'val1', 'key2' => 'val2')
+    sophia.replace('key3' => 'val3')
+
+    sophia.size.must_equal 1
+    sophia['key3'].must_equal 'val3'
+  end
 end
