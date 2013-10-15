@@ -242,4 +242,17 @@ describe Sophia do
     sophia.size.must_equal 1
     sophia['key3'].must_equal 'val3'
   end
+
+  it 'has_key?' do
+    sophia = Sophia.new @tmpdir
+    sophia['key'] = 'val'
+
+    sophia.must_include 'key'
+  end
+
+  it 'has_key? with not exists key' do
+    sophia = Sophia.new @tmpdir
+
+    sophia.wont_include 'key'
+  end
 end
