@@ -80,7 +80,7 @@ sophia_initialize(int argc, VALUE *argv, VALUE self)
         rb_raise(rb_eStandardError, sp_error(sophia->env));
     }
 
-    return Qnil;
+    return self;
 }
 
 /*
@@ -109,6 +109,27 @@ sophia_close(VALUE self)
     }
 
     return Qnil;
+}
+
+/*
+ * call-seq:
+ *   Sophia.open("/path/to/db") -> sophia
+ *   Sophia.open("/path/to/db") { |sophia| block } -> block
+ */
+static VALUE
+sophia_s_open(int argc, VALUE *argv, VALUE self)
+{
+    VALUE sophia = sophia_alloc(self);
+
+    if (NIL_P(sophia_initialize(argc, argv, sophia))) {
+        return Qnil;
+    }
+
+    if (rb_block_given_p()) {
+        return rb_ensure(rb_yield, sophia, sophia_close, sophia);
+    }
+
+    return sophia;
 }
 
 /*
@@ -208,6 +229,10 @@ Init_sophia()
 {
     rb_cSophia = rb_define_class("Sophia", rb_cObject);
     rb_define_alloc_func(rb_cSophia, sophia_alloc);
+    rb_include_module(rb_cSophia, rb_mEnumerable); /* include Enumerable */
+
+    rb_define_singleton_method(rb_cSophia, "open", sophia_s_open, -1);
+
     rb_define_private_method(rb_cSophia, "initialize", sophia_initialize, -1);
     rb_define_method(rb_cSophia, "close",   sophia_close, 0);
     rb_define_method(rb_cSophia, "closed?", sophia_closed_p, 0);
