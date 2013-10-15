@@ -457,6 +457,24 @@ sophia_clear(VALUE self)
     return Qnil;
 }
 
+static VALUE
+sophia_update_itr(VALUE pair, VALUE self)
+{
+    Check_Type(pair, T_ARRAY);
+    if (RARRAY_LEN(pair) < 2) {
+        rb_raise(rb_eArgError, "pair must be [key, value]");
+    }
+    sophia_set(self, RARRAY_PTR(pair)[0], RARRAY_PTR(pair)[1]);
+    return Qnil;
+}
+
+static VALUE
+sophia_update(VALUE self, VALUE value)
+{
+    rb_block_call(value, rb_intern("each_pair"), 0, 0, sophia_update_itr, self);
+    return self;
+}
+
 void
 Init_sophia()
 {
@@ -490,6 +508,7 @@ Init_sophia()
     rb_define_method(rb_cSophia, "keys",       sophia_keys, 0);
     rb_define_method(rb_cSophia, "values",     sophia_values, 0);
     rb_define_method(rb_cSophia, "clear",      sophia_clear, 0);
+    rb_define_method(rb_cSophia, "update",     sophia_update, 1);
 
     rb_require("sophia/version");
 }

@@ -219,4 +219,18 @@ describe Sophia do
 
     sophia.clear.must_be_nil
   end
+
+  it 'update' do
+    sophia = Sophia.new @tmpdir
+    sophia.update('key' => 'val')
+
+    sophia['key'].must_equal 'val'
+  end
+
+  it 'update with empty hash' do
+    sophia = Sophia.new @tmpdir
+    sophia.update({})
+
+    sophia.must_be :empty?
+  end
 end
