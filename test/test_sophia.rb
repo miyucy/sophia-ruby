@@ -67,4 +67,30 @@ describe Sophia do
 
     sophia.delete('key').must_be_nil
   end
+
+  it 'length' do
+    sophia = Sophia.new @tmpdir
+
+    sophia.length.must_equal 0
+  end
+
+  it 'length with key' do
+    sophia = Sophia.new @tmpdir
+    sophia['key'] = 'val'
+
+    sophia.length.must_equal 1
+  end
+
+  it 'empty?' do
+    sophia = Sophia.new @tmpdir
+
+    sophia.must_be :empty?
+  end
+
+  it 'empty? with key' do
+    sophia = Sophia.new @tmpdir
+    sophia['key'] = 'val'
+
+    sophia.wont_be :empty?
+  end
 end

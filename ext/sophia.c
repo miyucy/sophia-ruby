@@ -249,6 +249,46 @@ sophia_delete(VALUE self, VALUE key)
     return Qnil;
 }
 
+static VALUE
+sophia_length(VALUE self)
+{
+    Sophia *sophia;
+    int length = 0;
+    void   *cursor;
+
+    GetSophia(self, sophia);
+
+    cursor = sp_cursor(sophia->db, SPGT, NULL, 0);
+    if (cursor == NULL) {
+        rb_raise(rb_eStandardError, sp_error(sophia->env));
+    }
+	while (sp_fetch(cursor)) {
+        length += 1;
+    }
+    sp_destroy(cursor);
+
+    return INT2FIX(length);
+}
+
+static VALUE
+sophia_empty_p(VALUE self)
+{
+    Sophia *sophia;
+    int     result;
+    void   *cursor;
+
+    GetSophia(self, sophia);
+
+    cursor = sp_cursor(sophia->db, SPGT, NULL, 0);
+    if (cursor == NULL) {
+        rb_raise(rb_eStandardError, sp_error(sophia->env));
+    }
+    result = sp_fetch(cursor);
+    sp_destroy(cursor);
+
+    return result == 0 ?  Qtrue : Qfalse;
+}
+
 void
 Init_sophia()
 {
@@ -266,5 +306,9 @@ Init_sophia()
     rb_define_method(rb_cSophia, "[]",      sophia_aref, 1);
     rb_define_method(rb_cSophia, "fetch",   sophia_fetch, -1);
     rb_define_method(rb_cSophia, "delete",  sophia_delete, 1);
+    rb_define_method(rb_cSophia, "length",  sophia_length, 0);
+    rb_define_alias(rb_cSophia,  "size",    "length");
+    rb_define_method(rb_cSophia, "empty?",  sophia_empty_p, 0);
+
     rb_require("sophia/version");
 }
