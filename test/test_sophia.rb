@@ -205,4 +205,18 @@ describe Sophia do
 
     sophia.values.must_be :empty?
   end
+
+  it 'clear' do
+    sophia = Sophia.new @tmpdir
+    sophia['key'] = 'val'
+    sophia.clear
+
+    sophia.must_be :empty?
+  end
+
+  it 'clear return nil' do
+    sophia = Sophia.new @tmpdir
+
+    sophia.clear.must_be_nil
+  end
 end

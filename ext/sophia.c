@@ -439,6 +439,24 @@ sophia_values(VALUE self)
     return retvals;
 }
 
+static VALUE
+sophia_clear(VALUE self)
+{
+    Sophia *sophia;
+    VALUE     keys;
+    VALUE      key;
+    long       i,n;
+
+    GetSophia(self, sophia);
+
+    keys = sophia_keys(self);
+    for (i=0, n=RARRAY_LEN(keys); i<n; i++) {
+        sophia_delete(self, RARRAY_PTR(keys)[i]);
+    }
+
+    return Qnil;
+}
+
 void
 Init_sophia()
 {
@@ -471,6 +489,7 @@ Init_sophia()
     rb_define_method(rb_cSophia, "values_at",  sophia_values_at, -1);
     rb_define_method(rb_cSophia, "keys",       sophia_keys, 0);
     rb_define_method(rb_cSophia, "values",     sophia_values, 0);
+    rb_define_method(rb_cSophia, "clear",      sophia_clear, 0);
 
     rb_require("sophia/version");
 }
