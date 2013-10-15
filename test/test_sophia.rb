@@ -255,4 +255,17 @@ describe Sophia do
 
     sophia.wont_include 'key'
   end
+
+  it 'has_value?' do
+    sophia = Sophia.new @tmpdir
+    sophia['key'] = 'val'
+
+    sophia.has_value?('val').must_equal true
+  end
+
+  it 'has_value? with empty db' do
+    sophia = Sophia.new @tmpdir
+
+    sophia.has_value?('val').must_equal false
+  end
 end

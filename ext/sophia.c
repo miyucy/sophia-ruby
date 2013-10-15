@@ -376,6 +376,7 @@ sophia_key(VALUE self, VALUE value)
         if (sp_valuesize(cursor) == RSTRING_LEN(value)) {
             if (memcmp(sp_value(cursor), RSTRING_PTR(value), RSTRING_LEN(value)) == 0) {
                 retval = rb_str_new(sp_key(cursor), sp_keysize(cursor));
+                break;
             }
         }
     }
@@ -504,6 +505,34 @@ sophia_has_key_p(VALUE self, VALUE key)
     return result == 0 ? Qfalse : Qtrue;
 }
 
+static VALUE
+sophia_has_value_p(VALUE self, VALUE value)
+{
+    Sophia *sophia;
+    void   *cursor;
+    VALUE   retval = Qfalse;
+
+    GetSophia(self, sophia);
+
+    ExportStringValue(value);
+
+    cursor = sp_cursor(sophia->db, SPGT, NULL, 0);
+    if (cursor == NULL) {
+        rb_raise(rb_eSophiaError, "%s", sp_error(sophia->env));
+    }
+    while (sp_fetch(cursor)) {
+        if (sp_valuesize(cursor) == RSTRING_LEN(value)) {
+            if (memcmp(sp_value(cursor), RSTRING_PTR(value), RSTRING_LEN(value)) == 0) {
+                retval = Qtrue;
+                break;
+            }
+        }
+    }
+    sp_destroy(cursor);
+
+    return retval;
+}
+
 void
 Init_sophia()
 {
@@ -543,6 +572,7 @@ Init_sophia()
     rb_define_alias(rb_cSophia,  "key?",       "has_key?");
     rb_define_alias(rb_cSophia,  "include?",   "has_key?");
     rb_define_alias(rb_cSophia,  "member?",    "has_key?");
+    rb_define_method(rb_cSophia, "has_value?", sophia_has_value_p, 1);
 
     rb_require("sophia/version");
 }
