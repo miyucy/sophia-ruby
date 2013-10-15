@@ -179,4 +179,30 @@ describe Sophia do
 
     sophia.values_at.must_be :empty?
   end
+
+  it 'keys' do
+    sophia = Sophia.new @tmpdir
+    sophia['key'] = 'val'
+
+    sophia.keys.must_equal ['key']
+  end
+
+  it 'keys with empty db' do
+    sophia = Sophia.new @tmpdir
+
+    sophia.keys.must_be :empty?
+  end
+
+  it 'values' do
+    sophia = Sophia.new @tmpdir
+    sophia['key'] = 'val'
+
+    sophia.values.must_equal ['val']
+  end
+
+  it 'values with empty db' do
+    sophia = Sophia.new @tmpdir
+
+    sophia.values.must_be :empty?
+  end
 end

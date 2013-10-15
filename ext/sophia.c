@@ -397,6 +397,48 @@ sophia_values_at(int argc, VALUE *argv, VALUE self)
     return values;
 }
 
+static VALUE
+sophia_keys(VALUE self)
+{
+    Sophia *sophia;
+    void   *cursor;
+    VALUE  retvals = rb_ary_new();
+
+    GetSophia(self, sophia);
+
+    cursor = sp_cursor(sophia->db, SPGT, NULL, 0);
+    if (cursor == NULL) {
+        rb_raise(rb_eSophiaError, sp_error(sophia->env));
+    }
+    while (sp_fetch(cursor)) {
+        rb_ary_push(retvals, rb_str_new(sp_key(cursor), sp_keysize(cursor)));
+    }
+    sp_destroy(cursor);
+
+    return retvals;
+}
+
+static VALUE
+sophia_values(VALUE self)
+{
+    Sophia *sophia;
+    void   *cursor;
+    VALUE  retvals = rb_ary_new();
+
+    GetSophia(self, sophia);
+
+    cursor = sp_cursor(sophia->db, SPGT, NULL, 0);
+    if (cursor == NULL) {
+        rb_raise(rb_eSophiaError, sp_error(sophia->env));
+    }
+    while (sp_fetch(cursor)) {
+        rb_ary_push(retvals, rb_str_new(sp_value(cursor), sp_valuesize(cursor)));
+    }
+    sp_destroy(cursor);
+
+    return retvals;
+}
+
 void
 Init_sophia()
 {
@@ -427,6 +469,8 @@ Init_sophia()
     rb_define_method(rb_cSophia, "key",        sophia_key, 1);
     rb_define_alias(rb_cSophia,  "index",      "key");
     rb_define_method(rb_cSophia, "values_at",  sophia_values_at, -1);
+    rb_define_method(rb_cSophia, "keys",       sophia_keys, 0);
+    rb_define_method(rb_cSophia, "values",     sophia_values, 0);
 
     rb_require("sophia/version");
 }
