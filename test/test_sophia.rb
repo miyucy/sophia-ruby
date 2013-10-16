@@ -275,4 +275,88 @@ describe Sophia do
     enum.next.must_equal %w[key2 val2]
     enum.next.must_equal %w[key1 val1]
   end
+
+  it 'each_key SPGT' do
+    @sophia['key1'] = 'val1'
+    @sophia['key2'] = 'val2'
+    @sophia['key3'] = 'val3'
+    keys = []
+    @sophia.each_key(Sophia::SPGT) { |k| keys << k }
+
+    keys.must_equal %w[key1 key2 key3]
+  end
+
+  it 'each_key SPLT' do
+    @sophia['key1'] = 'val1'
+    @sophia['key2'] = 'val2'
+    @sophia['key3'] = 'val3'
+    keys = []
+    @sophia.each_key(Sophia::SPLT) { |k| keys << k }
+
+    keys.must_equal %w[key1 key2 key3].reverse
+  end
+
+  it 'each_key enumerator SPGT' do
+    @sophia['key1'] = 'val1'
+    @sophia['key2'] = 'val2'
+    @sophia['key3'] = 'val3'
+    enum = @sophia.each_key(Sophia::SPGT)
+
+    enum.next.must_equal 'key1'
+    enum.next.must_equal 'key2'
+    enum.next.must_equal 'key3'
+  end
+
+  it 'each_key enumerator SPLT' do
+    @sophia['key1'] = 'val1'
+    @sophia['key2'] = 'val2'
+    @sophia['key3'] = 'val3'
+    enum = @sophia.each_key(Sophia::SPLT)
+
+    enum.next.must_equal 'key3'
+    enum.next.must_equal 'key2'
+    enum.next.must_equal 'key1'
+  end
+
+  it 'each_value SPGT' do
+    @sophia['key1'] = 'val1'
+    @sophia['key2'] = 'val2'
+    @sophia['key3'] = 'val3'
+    vals = []
+    @sophia.each_value(Sophia::SPGT) { |v| vals << v }
+
+    vals.must_equal %w[val1 val2 val3]
+  end
+
+  it 'each_value SPLT' do
+    @sophia['key1'] = 'val1'
+    @sophia['key2'] = 'val2'
+    @sophia['key3'] = 'val3'
+    vals = []
+    @sophia.each_value(Sophia::SPLT) { |v| vals << v }
+
+    vals.must_equal %w[val1 val2 val3].reverse
+  end
+
+  it 'each_key enumerator SPGT' do
+    @sophia['key1'] = 'val1'
+    @sophia['key2'] = 'val2'
+    @sophia['key3'] = 'val3'
+    enum = @sophia.each_value(Sophia::SPGT)
+
+    enum.next.must_equal 'val1'
+    enum.next.must_equal 'val2'
+    enum.next.must_equal 'val3'
+  end
+
+  it 'each_key enumerator SPLT' do
+    @sophia['key1'] = 'val1'
+    @sophia['key2'] = 'val2'
+    @sophia['key3'] = 'val3'
+    enum = @sophia.each_value(Sophia::SPLT)
+
+    enum.next.must_equal 'val3'
+    enum.next.must_equal 'val2'
+    enum.next.must_equal 'val1'
+  end
 end

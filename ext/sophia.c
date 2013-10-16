@@ -355,16 +355,19 @@ sophia_each_key_block(VALUE value)
 }
 
 static VALUE
-sophia_each_key(VALUE self)
+sophia_each_key(int argc, VALUE *argv, VALUE self)
 {
     Sophia *sophia;
     void   *cursor;
+    sporder  order;
 
-    RETURN_ENUMERATOR(self, 0, 0);
+    RETURN_ENUMERATOR(self, argc, argv);
 
     GetSophia(self, sophia);
 
-    cursor = sp_cursor(sophia->db, SPGT, NULL, 0);
+    order = sophia_scan_sporder(argc, argv);
+
+    cursor = sp_cursor(sophia->db, order, NULL, 0);
     if (cursor == NULL) {
         RaiseSophiaError(sophia->env);
     }
@@ -384,16 +387,19 @@ sophia_each_value_block(VALUE value)
 }
 
 static VALUE
-sophia_each_value(VALUE self)
+sophia_each_value(int argc, VALUE *argv, VALUE self)
 {
     Sophia *sophia;
     void   *cursor;
+    sporder  order;
 
-    RETURN_ENUMERATOR(self, 0, 0);
+    RETURN_ENUMERATOR(self, argc, argv);
 
     GetSophia(self, sophia);
 
-    cursor = sp_cursor(sophia->db, SPGT, NULL, 0);
+    order = sophia_scan_sporder(argc, argv);
+
+    cursor = sp_cursor(sophia->db, order, NULL, 0);
     if (cursor == NULL) {
         RaiseSophiaError(sophia->env);
     }
@@ -603,8 +609,8 @@ Init_sophia()
     rb_define_method(rb_cSophia, "empty?",     sophia_empty_p, 0);
     rb_define_method(rb_cSophia, "each_pair",  sophia_each_pair, -1);
     rb_define_alias(rb_cSophia,  "each",       "each_pair");
-    rb_define_method(rb_cSophia, "each_key",   sophia_each_key, 0);
-    rb_define_method(rb_cSophia, "each_value", sophia_each_value, 0);
+    rb_define_method(rb_cSophia, "each_key",   sophia_each_key, -1);
+    rb_define_method(rb_cSophia, "each_value", sophia_each_value, -1);
     rb_define_method(rb_cSophia, "key",        sophia_key, 1);
     rb_define_alias(rb_cSophia,  "index",      "key");
     rb_define_method(rb_cSophia, "values_at",  sophia_values_at, -1);
