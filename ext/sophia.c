@@ -309,17 +309,33 @@ sophia_cursor_ensure(VALUE value)
     return Qnil;
 }
 
+static sporder
+sophia_scan_sporder(int argc, VALUE *argv)
+{
+    VALUE order;
+
+    rb_scan_args(argc, argv, "01", &order);
+    if (NIL_P(order)) {
+        return SPGT;
+    } else {
+        return NUM2INT(order);
+    }
+}
+
 static VALUE
-sophia_each_pair(VALUE self)
+sophia_each_pair(int argc, VALUE *argv, VALUE self)
 {
     Sophia *sophia;
     void   *cursor;
+    sporder  order;
 
-    RETURN_ENUMERATOR(self, 0, 0);
+    RETURN_ENUMERATOR(self, argc, argv);
 
     GetSophia(self, sophia);
 
-    cursor = sp_cursor(sophia->db, SPGT, NULL, 0);
+    order = sophia_scan_sporder(argc, argv);
+
+    cursor = sp_cursor(sophia->db, order, NULL, 0);
     if (cursor == NULL) {
         RaiseSophiaError(sophia->env);
     }
@@ -585,7 +601,7 @@ Init_sophia()
     rb_define_method(rb_cSophia, "length",     sophia_length, 0);
     rb_define_alias(rb_cSophia,  "size",       "length");
     rb_define_method(rb_cSophia, "empty?",     sophia_empty_p, 0);
-    rb_define_method(rb_cSophia, "each_pair",  sophia_each_pair, 0);
+    rb_define_method(rb_cSophia, "each_pair",  sophia_each_pair, -1);
     rb_define_alias(rb_cSophia,  "each",       "each_pair");
     rb_define_method(rb_cSophia, "each_key",   sophia_each_key, 0);
     rb_define_method(rb_cSophia, "each_value", sophia_each_value, 0);
@@ -602,6 +618,11 @@ Init_sophia()
     rb_define_alias(rb_cSophia,  "include?",   "has_key?");
     rb_define_alias(rb_cSophia,  "member?",    "has_key?");
     rb_define_method(rb_cSophia, "has_value?", sophia_has_value_p, 1);
+
+    rb_define_const(rb_cSophia, "SPGT",  INT2FIX(SPGT));
+    rb_define_const(rb_cSophia, "SPGTE", INT2FIX(SPGTE));
+    rb_define_const(rb_cSophia, "SPLT",  INT2FIX(SPLT));
+    rb_define_const(rb_cSophia, "SPLTE", INT2FIX(SPLTE));
 
     rb_require("sophia/version");
 }

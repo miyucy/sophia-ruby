@@ -233,4 +233,46 @@ describe Sophia do
   it 'has_value? with empty db' do
     @sophia.has_value?('val').must_equal false
   end
+
+  it 'each SPGT' do
+    @sophia['key1'] = 'val1'
+    @sophia['key2'] = 'val2'
+    @sophia['key3'] = 'val3'
+    keys = []
+    @sophia.each(Sophia::SPGT) { |k, v| keys << k }
+
+    keys.must_equal %w[key1 key2 key3]
+  end
+
+  it 'each SPLT' do
+    @sophia['key1'] = 'val1'
+    @sophia['key2'] = 'val2'
+    @sophia['key3'] = 'val3'
+    keys = []
+    @sophia.each(Sophia::SPLT) { |k, v| keys << k }
+
+    keys.must_equal %w[key1 key2 key3].reverse
+  end
+
+  it 'each enumerator SPGT' do
+    @sophia['key1'] = 'val1'
+    @sophia['key2'] = 'val2'
+    @sophia['key3'] = 'val3'
+    enum = @sophia.each(Sophia::SPGT)
+
+    enum.next.must_equal %w[key1 val1]
+    enum.next.must_equal %w[key2 val2]
+    enum.next.must_equal %w[key3 val3]
+  end
+
+  it 'each enumerator SPLT' do
+    @sophia['key1'] = 'val1'
+    @sophia['key2'] = 'val2'
+    @sophia['key3'] = 'val3'
+    enum = @sophia.each(Sophia::SPLT)
+
+    enum.next.must_equal %w[key3 val3]
+    enum.next.must_equal %w[key2 val2]
+    enum.next.must_equal %w[key1 val1]
+  end
 end
