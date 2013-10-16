@@ -584,6 +584,42 @@ sophia_has_value_p(VALUE self, VALUE value)
     return retval;
 }
 
+static VALUE
+sophia_transaction(VALUE self)
+{
+    Sophia *sophia;
+    VALUE   retval = Qnil;
+    int     result;
+    int      state = 0;
+
+    if (!rb_block_given_p()) {
+        rb_raise(rb_eArgError, "must supply block for Sophia#transaction");
+    }
+
+    GetSophia(self, sophia);
+
+    result = sp_begin(sophia->db);
+    if (result == -1) {
+        RaiseSophiaError(sophia->env);
+    }
+
+    retval = rb_protect(rb_yield, self, &state);
+    if (state != 0) {
+        result = sp_rollback(sophia->db);
+        if (result == -1) {
+            RaiseSophiaError(sophia->env);
+        }
+        rb_jump_tag(state);
+    } else {
+        result = sp_commit(sophia->db);
+        if (result == -1) {
+            RaiseSophiaError(sophia->env);
+        }
+    }
+
+    return retval;
+}
+
 void
 Init_sophia()
 {
@@ -596,34 +632,35 @@ Init_sophia()
     rb_define_singleton_method(rb_cSophia, "open", sophia_s_open, -1);
 
     rb_define_private_method(rb_cSophia, "initialize", sophia_initialize, -1);
-    rb_define_method(rb_cSophia, "close",      sophia_close, 0);
-    rb_define_method(rb_cSophia, "closed?",    sophia_closed_p, 0);
-    rb_define_method(rb_cSophia, "set",        sophia_set, 2);
-    rb_define_method(rb_cSophia, "[]=",        sophia_set, 2);
-    rb_define_method(rb_cSophia, "get",        sophia_aref, 1);
-    rb_define_method(rb_cSophia, "[]",         sophia_aref, 1);
-    rb_define_method(rb_cSophia, "fetch",      sophia_fetch, -1);
-    rb_define_method(rb_cSophia, "delete",     sophia_delete, 1);
-    rb_define_method(rb_cSophia, "length",     sophia_length, 0);
-    rb_define_alias(rb_cSophia,  "size",       "length");
-    rb_define_method(rb_cSophia, "empty?",     sophia_empty_p, 0);
-    rb_define_method(rb_cSophia, "each_pair",  sophia_each_pair, -1);
-    rb_define_alias(rb_cSophia,  "each",       "each_pair");
-    rb_define_method(rb_cSophia, "each_key",   sophia_each_key, -1);
-    rb_define_method(rb_cSophia, "each_value", sophia_each_value, -1);
-    rb_define_method(rb_cSophia, "key",        sophia_key, 1);
-    rb_define_alias(rb_cSophia,  "index",      "key");
-    rb_define_method(rb_cSophia, "values_at",  sophia_values_at, -1);
-    rb_define_method(rb_cSophia, "keys",       sophia_keys, 0);
-    rb_define_method(rb_cSophia, "values",     sophia_values, 0);
-    rb_define_method(rb_cSophia, "clear",      sophia_clear, 0);
-    rb_define_method(rb_cSophia, "update",     sophia_update, 1);
-    rb_define_method(rb_cSophia, "replace",    sophia_replace, 1);
-    rb_define_method(rb_cSophia, "has_key?",   sophia_has_key_p, 1);
-    rb_define_alias(rb_cSophia,  "key?",       "has_key?");
-    rb_define_alias(rb_cSophia,  "include?",   "has_key?");
-    rb_define_alias(rb_cSophia,  "member?",    "has_key?");
-    rb_define_method(rb_cSophia, "has_value?", sophia_has_value_p, 1);
+    rb_define_method(rb_cSophia, "close",       sophia_close, 0);
+    rb_define_method(rb_cSophia, "closed?",     sophia_closed_p, 0);
+    rb_define_method(rb_cSophia, "set",         sophia_set, 2);
+    rb_define_method(rb_cSophia, "[]=",         sophia_set, 2);
+    rb_define_method(rb_cSophia, "get",         sophia_aref, 1);
+    rb_define_method(rb_cSophia, "[]",          sophia_aref, 1);
+    rb_define_method(rb_cSophia, "fetch",       sophia_fetch, -1);
+    rb_define_method(rb_cSophia, "delete",      sophia_delete, 1);
+    rb_define_method(rb_cSophia, "length",      sophia_length, 0);
+    rb_define_alias(rb_cSophia,  "size",        "length");
+    rb_define_method(rb_cSophia, "empty?",      sophia_empty_p, 0);
+    rb_define_method(rb_cSophia, "each_pair",   sophia_each_pair, -1);
+    rb_define_alias(rb_cSophia,  "each",        "each_pair");
+    rb_define_method(rb_cSophia, "each_key",    sophia_each_key, -1);
+    rb_define_method(rb_cSophia, "each_value",  sophia_each_value, -1);
+    rb_define_method(rb_cSophia, "key",         sophia_key, 1);
+    rb_define_alias(rb_cSophia,  "index",       "key");
+    rb_define_method(rb_cSophia, "values_at",   sophia_values_at, -1);
+    rb_define_method(rb_cSophia, "keys",        sophia_keys, 0);
+    rb_define_method(rb_cSophia, "values",      sophia_values, 0);
+    rb_define_method(rb_cSophia, "clear",       sophia_clear, 0);
+    rb_define_method(rb_cSophia, "update",      sophia_update, 1);
+    rb_define_method(rb_cSophia, "replace",     sophia_replace, 1);
+    rb_define_method(rb_cSophia, "has_key?",    sophia_has_key_p, 1);
+    rb_define_alias(rb_cSophia,  "key?",        "has_key?");
+    rb_define_alias(rb_cSophia,  "include?",    "has_key?");
+    rb_define_alias(rb_cSophia,  "member?",     "has_key?");
+    rb_define_method(rb_cSophia, "has_value?",  sophia_has_value_p, 1);
+    rb_define_method(rb_cSophia, "transaction", sophia_transaction, 0);
 
     rb_define_const(rb_cSophia, "SPGT",  INT2FIX(SPGT));
     rb_define_const(rb_cSophia, "SPGTE", INT2FIX(SPGTE));

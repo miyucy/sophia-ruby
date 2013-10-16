@@ -359,4 +359,43 @@ describe Sophia do
     enum.next.must_equal 'val2'
     enum.next.must_equal 'val1'
   end
+
+  it 'transaction and commit' do
+    @sophia.transaction do |sophia|
+      sophia['key'] = 'val'
+    end
+
+    @sophia['key'].must_equal 'val'
+  end
+
+  it 'transaction and rollback' do
+    @sophia.transaction do |sophia|
+      sophia['key'] = 'val'
+      raise 'rollback'
+    end rescue nil # ignore exception
+
+    @sophia.wont_include 'key'
+  end
+
+  it 'transaction and re-raise' do
+    lambda {
+      @sophia.transaction do
+        raise 'rollback'
+      end
+    }.must_raise RuntimeError
+  end
+
+  it 'transaction with no block' do
+    lambda { @sophia.transaction }.must_raise ArgumentError
+  end
+
+  it 'double transaction' do
+    lambda {
+      @sophia.transaction {
+        @sophia.transaction {
+          @sophia['key'] = 'val'
+        }
+      }
+    }.must_raise SophiaError
+  end
 end
