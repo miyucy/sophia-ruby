@@ -20,6 +20,12 @@ describe Sophia, 'open' do
     Sophia.open(@tmpdir) { |sophia| retval }.must_equal retval
   end
 
+  it 'should be closed' do
+    sophia = nil
+    Sophia.open(@tmpdir) { |_sophia| sophia = _sophia }
+    sophia.closed?.must_equal true
+  end
+
   it 'raise error' do
     lambda { Sophia.open }.must_raise ArgumentError
   end
