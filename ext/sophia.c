@@ -46,7 +46,7 @@ static VALUE
 sophia_alloc(VALUE klass)
 {
     Sophia *sophia = ALLOC(Sophia);
-
+    memset(sophia, 0, sizeof(Sophia));
     return Data_Wrap_Struct(klass, sophia_mark, sophia_free, sophia);
 }
 
@@ -55,14 +55,11 @@ sophia_alloc(VALUE klass)
  *   Sophia.new("/path/to/db") -> sophia
  */
 static VALUE
-sophia_initialize(int argc, VALUE *argv, VALUE self)
+sophia_initialize(VALUE self, VALUE file)
 {
     Sophia *sophia;
-    VALUE file;
 
     Data_Get_Struct(self, Sophia, sophia);
-
-    rb_scan_args(argc, argv, "1", &file);
 
     FilePathValue(file);
 
@@ -119,11 +116,11 @@ sophia_close(VALUE self)
  *   Sophia.open("/path/to/db") { |sophia| block } -> block
  */
 static VALUE
-sophia_s_open(int argc, VALUE *argv, VALUE self)
+sophia_s_open(VALUE self, VALUE file)
 {
     VALUE sophia = sophia_alloc(self);
 
-    if (NIL_P(sophia_initialize(argc, argv, sophia))) {
+    if (NIL_P(sophia_initialize(sophia, file))) {
         return Qnil;
     }
 
@@ -629,9 +626,9 @@ Init_sophia()
 
     rb_eSophiaError = rb_define_class("SophiaError", rb_eStandardError);
 
-    rb_define_singleton_method(rb_cSophia, "open", sophia_s_open, -1);
+    rb_define_singleton_method(rb_cSophia, "open", sophia_s_open, 1);
 
-    rb_define_private_method(rb_cSophia, "initialize", sophia_initialize, -1);
+    rb_define_private_method(rb_cSophia, "initialize", sophia_initialize, 1);
     rb_define_method(rb_cSophia, "close",       sophia_close, 0);
     rb_define_method(rb_cSophia, "closed?",     sophia_closed_p, 0);
     rb_define_method(rb_cSophia, "set",         sophia_set, 2);

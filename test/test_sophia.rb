@@ -19,6 +19,10 @@ describe Sophia, 'open' do
     retval = rand
     Sophia.open(@tmpdir) { |sophia| retval }.must_equal retval
   end
+
+  it 'raise error' do
+    lambda { Sophia.open }.must_raise ArgumentError
+  end
 end
 
 describe Sophia do
@@ -30,6 +34,10 @@ describe Sophia do
   after  do
     @sophia.close unless @sophia.closed?
     FileUtils.remove_entry_secure @tmpdir
+  end
+
+  it 'raise error' do
+    lambda { Sophia.new }.must_raise ArgumentError
   end
 
   it 'get/set' do
